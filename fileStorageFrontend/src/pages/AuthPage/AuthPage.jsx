@@ -33,7 +33,6 @@ export const AuthPage = () => {
         }
     },[errorAccess])
 
-    console.log(showAlert,errorAccess)
     if (isAuth) {
         return <Navigate to={ROUTES.DASHBOARD} replace />; 
     }

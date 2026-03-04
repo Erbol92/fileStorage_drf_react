@@ -39,7 +39,9 @@ class File(models.Model):
                                null=True, blank=True, related_name='children')
     is_directory = models.BooleanField(default=False)
     
+    comment = models.CharField(max_length=255, null=True, blank=True)
     # Метаданные
+    uid = models.UUIDField(null=True,blank=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

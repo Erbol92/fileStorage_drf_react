@@ -12,6 +12,10 @@ const initialState = {
     isOpen: false,
     item: null
   },
+  renameModal: {
+    isOpen: false,
+    item: null
+  },
   createFolderModal: {
     isOpen: false,
     parentId: null
@@ -51,6 +55,14 @@ export const fileSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
+    renameItemRequest: (state, action) => {
+      state.loading = true;
+      state.error = null;
+    },
+    shareItemRequest: (state, action) => {
+      state.loading = true;
+      state.error = null;
+    },
     searchFilesRequest: (state, action) => {
       state.loading = true;
       state.error = null;
@@ -81,7 +93,16 @@ export const fileSlice = createSlice({
       state.loading = false;
       state.moveModal.isOpen = false;
       state.moveModal.item = null;
-      // Обновляем список файлов если нужно
+    },
+    renameItemSuccess: (state, action) => {
+      state.loading = false;
+      state.renameModal.isOpen = false;
+      state.renameModal.item = null;
+    },
+    shareItemSuccess: (state, action) => {
+      const item = action.payload
+      state.loading = false;
+      state.files = state.files.map(file=>file.id === item.id ? { ...file, uid: item.uid } : file)
     },
     searchFilesSuccess: (state, action) => {
       state.loading = false;
@@ -127,6 +148,14 @@ export const fileSlice = createSlice({
       state.createFolderModal.isOpen = false;
       state.createFolderModal.parentId = null;
     },
+    openRenameModal: (state, action) => {
+      state.renameModal.isOpen = true;
+      state.renameModal.item = action.payload;
+    },
+    closeRenameModal: (state) => {
+      state.renameModal.isOpen = false;
+      state.renameModal.item = null;
+    },
     clearError: (state) => {
       state.error = null;
     }
@@ -141,6 +170,7 @@ export const {
   createFolderRequest,
   deleteItemRequest,
   moveItemRequest,
+  renameItemRequest,
   searchFilesRequest,
   fetchFilesSuccess,
   uploadFileSuccess,
@@ -148,6 +178,7 @@ export const {
   deleteItemSuccess,
   moveItemSuccess,
   searchFilesSuccess,
+  renameItemSuccess,
   fetchFilesFailure,
   setUploadProgress,
   selectFile,
@@ -157,5 +188,9 @@ export const {
   closeMoveModal,
   openCreateFolderModal,
   closeCreateFolderModal,
-  clearError
+  openRenameModal,
+  closeRenameModal,
+  clearError,
+  shareItemRequest,
+  shareItemSuccess
 } = fileSlice.actions;

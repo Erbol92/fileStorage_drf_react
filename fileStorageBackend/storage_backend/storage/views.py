@@ -1,17 +1,19 @@
+from django.http import FileResponse
 from django.shortcuts import render
 
 # Create your views here.
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from .models import File
 from .serializers import FileSerializer, SimpleFileSerializer
-import shutil
 from .models import user_directory_path
 from storage_backend.settings import MEDIA_ROOT
 import os
+import uuid
 
 class FileViewSet(viewsets.ModelViewSet):
     serializer_class = FileSerializer
@@ -133,6 +135,33 @@ class FileViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(item)
         return Response(serializer.data)
     
+    @action(detail=True, methods=['post'])
+    def rename(self, request, pk=None):
+        """переименовать файл"""
+        item = self.get_object()
+        new_name = request.data.get('name')
+        item.name = new_name
+        old_physical_path = item.file.path
+        new_relative_path = user_directory_path(item, os.path.basename(new_name))
+        new_physical_path = os.path.join(MEDIA_ROOT, new_relative_path)
+        try:
+            if os.path.exists(old_physical_path):
+                os.rename(old_physical_path, new_physical_path)
+                # 6. Обновляем запись в БД
+                item.file.name = new_relative_path
+                item.save()
+        except Exception as e:
+            return Response({"error": f"Ошибка при переименовании: {str(e)}"}, status=500)
+        return Response(status=status.HTTP_201_CREATED)
+    
+    @action(detail=True, methods=['post'])
+    def share(self, request, pk=None):
+        item = self.get_object()
+        item.uid = uuid.uuid4()
+        item.save()
+        serializer = FileSerializer(item)
+        return Response(data=serializer.data,status=status.HTTP_201_CREATED)
+    
     @action(detail=False, methods=['get'])
     def search(self, request):
         """Поиск файлов и папок по имени"""
@@ -143,3 +172,25 @@ class FileViewSet(viewsets.ModelViewSet):
         files = self.get_queryset().filter(name__icontains=query)
         serializer = SimpleFileSerializer(files, many=True)
         return Response(serializer.data)
+    
+class GuestDownloadFile(APIView):
+    permission_classes= (AllowAny,)
+
+    def get(self, request, uuid=None):
+        files = File.objects.filter(uid=uuid)
+        try:
+            file_obj = File.objects.get(uid=uuid)
+        except File.DoesNotExist:
+            return Response({"detail": "не могу найти файл"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not file_obj.file:
+            return Response({"detail": "файл отсутствует"}, status=status.HTTP_404_NOT_FOUND)
+
+        # открываем поле FileField и возвращаем FileResponse
+        try:
+            fh = file_obj.file.open('rb')
+        except Exception:
+            return Response({"detail": "ошибка открытия файла"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        response = FileResponse(fh, as_attachment=True, filename=file_obj.file.name.split('/')[-1])
+        return response

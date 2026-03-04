@@ -10,9 +10,9 @@ class FileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'file', 'size', 'size_display', 
             'mime_type', 'parent', 'is_directory', 
-            'created_at', 'updated_at', 'full_path'
+            'created_at', 'updated_at', 'full_path','comment','uid'
         ]
-        read_only_fields = ['size', 'mime_type', 'created_at', 'updated_at']
+        read_only_fields = ['size', 'mime_type', 'created_at', 'updated_at','uid']
     
     def get_size_display(self, obj):
         return obj.get_size_display()
@@ -35,4 +35,4 @@ class SimpleFileSerializer(serializers.ModelSerializer):
     """Простой сериализатор для списка файлов"""
     class Meta:
         model = File
-        fields = ['id', 'name', 'is_directory', 'size', 'created_at']
+        fields = ['id', 'name', 'is_directory', 'size', 'created_at','comment','file','uid']

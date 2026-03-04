@@ -1,7 +1,7 @@
 import { all } from 'redux-saga/effects';
 import { watchAuth,watchCheckAuth,watchLogout } from './authSaga';
 import { watchReg } from './registerSaga';
-import { watchCreateFolder, watchDeleteItem, watchFetchFolderContent, watchFetchRoot, watchMoveItem, watchSearchFiles, watchUploadFile } from './fileSaga';
+import { watchRenameItem, watchCreateFolder, watchDeleteItem, watchFetchFolderContent, watchFetchRoot, watchMoveItem, watchSearchFiles, watchUploadFile, watchShareItem } from './fileSaga';
 
 export function* rootSaga() {
     yield all([
@@ -15,6 +15,8 @@ export function* rootSaga() {
         watchCreateFolder(),
         watchDeleteItem(),
         watchMoveItem(),
-        watchSearchFiles()
+        watchSearchFiles(),
+        watchRenameItem(),
+        watchShareItem()
       ]);
 }

@@ -12,6 +12,7 @@ import Breadcrumbs from './Breadcrumbs';
 import UploadModal from './UploadModal';
 import CreateFolderModal from './CreateFolderModal';
 import MoveModal from './MoveModal';
+import RenameModal from './RenameModal'
 import { FaFolderPlus, FaUpload, FaSearch, FaSync } from 'react-icons/fa';
 
 export const FileManager = () => {
@@ -181,6 +182,7 @@ export const FileManager = () => {
 
       <CreateFolderModal />
       <MoveModal />
+      <RenameModal />
     </div>
   );
 };

@@ -8,6 +8,7 @@ const UploadModal = ({ onClose, parentId }) => {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [comment, setComment] = useState('')
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -45,8 +46,8 @@ const UploadModal = ({ onClose, parentId }) => {
         dispatch(uploadFileRequest({
           file,
           parentId,
+          comment,
           onProgress: (fileName, progress) => {
-            console.log(fileName, progress)
           }
         }));
         // Даем небольшую задержку между загрузками
@@ -87,6 +88,10 @@ const UploadModal = ({ onClose, parentId }) => {
             />
           </label>
         </div>
+        <div className="form-floating"> 
+            <input value={comment} onChange={(e)=>setComment(e.target.value)} required type="text" className="form-control" id="floatingName" placeholder="комментарий"/> 
+            <label htmlFor="floatingName">комментарий</label> 
+        </div> 
 
         {selectedFiles.length > 0 && (
           <div className="selected-files">

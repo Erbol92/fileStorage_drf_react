@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   deleteItemRequest,
-  openMoveModal
+  openMoveModal,
+  shareItemRequest
 } from '../slices/fileSlice';
 import {
   FaFile,
@@ -18,6 +19,8 @@ import {
   FaCheckSquare,
   FaSquare
 } from 'react-icons/fa';
+import { FcDownload, FcLink  } from "react-icons/fc";
+import {CONFIG} from '../config'
 
 const getFileIcon = (mimeType, isDirectory) => {
   if (isDirectory) return <FaFolder className="icon folder" />;
@@ -77,6 +80,7 @@ const FileItem = ({
   const dispatch = useDispatch();
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [hovered, setHovered] = useState(false);
 
   const handleContextMenu = (e) => {
     e.preventDefault();
@@ -112,12 +116,43 @@ const FileItem = ({
     }
   };
 
+  const downloadFile = async (file) => {
+    try {
+      const response = await fetch(CONFIG.BACKEND_URL + file.file);
+      const blob = await response.blob();
+      const href = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = href;
+      link.setAttribute('download', file.name);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Ошибка скачивания:', error);
+    }
+    setShowMenu(false);
+  };
+
+  const shareFile = async (file) => {
+    dispatch(shareItemRequest(file.id))
+    setShowMenu(false);
+  };
+
+  const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(`${CONFIG.API_URL}/download/${text}`);
+  } catch (err) {
+    console.error(err)
+  }
+};
   return (
     <>
       <div
         className={`file-item ${isSelected ? 'selected' : ''}`}
         onClick={handleItemClick}
         onContextMenu={handleContextMenu}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
       >
         <div className="file-checkbox" onClick={handleSelectClick}>
           {isSelected ? <FaCheckSquare /> : <FaSquare />}
@@ -137,6 +172,13 @@ const FileItem = ({
             )}
             <span className="file-date">{formatDate(file.created_at)}</span>
           </div>
+          {
+          file.comment && hovered &&
+          <div className="file-meta file-comment w-100">
+            <p>комментарий</p>
+            <p className="file-size">{file.comment}</p>
+          </div>
+          }
         </div>
       </div>
 
@@ -148,11 +190,24 @@ const FileItem = ({
           <div className="menu-item" onClick={handleMove}>
             <FaArrowRight /> Переместить
           </div>
+          <div className="menu-item" onClick={()=>downloadFile(file)}>
+            <FcDownload /> Скачать
+          </div>
+          {!file.uid ? 
+            <div className="menu-item" onClick={()=>shareFile(file)}>
+              <FcLink /> поделиться
+            </div>
+            :
+            <div className="menu-item sharedLink" onClick={()=>copyToClipboard(file.uid)}>
+              <FcLink /> копировать ссылку
+            </div>
+          }
+          
           <div className="menu-item danger" onClick={handleDelete}>
             <FaTrash /> Удалить
           </div>
         </div>
-      )}
+      )} 
     </>
   );
 };

@@ -6,9 +6,10 @@ import {
   deselectFile,
   clearSelection,
   openMoveModal,
+  openRenameModal,
   deleteItemRequest
 } from '../slices/fileSlice';
-import { FaTrash, FaArrowRight } from 'react-icons/fa';
+import { FaTrash, FaArrowRight, FaEdit } from 'react-icons/fa';
 
 const FileList = ({ files, onFolderClick, currentFolder, onRefresh }) => {
   const dispatch = useDispatch();
@@ -52,6 +53,16 @@ const FileList = ({ files, onFolderClick, currentFolder, onRefresh }) => {
     }
   };
 
+  const handleRenameSelected = () => {
+    if (selectedFiles.length === 1) {
+      const item = files.find(f => f.id === selectedFiles[0]);
+      dispatch(openRenameModal(item))
+      dispatch(clearSelection());
+      } else {
+      alert('Переименовать можно только 1 файл');
+    }
+  };
+
   const handleMoveSelected = () => {
     if (selectedFiles.length === 1) {
       const item = files.find(f => f.id === selectedFiles[0]);
@@ -80,6 +91,9 @@ const FileList = ({ files, onFolderClick, currentFolder, onRefresh }) => {
           </button>
           <button onClick={handleMoveSelected}>
             <FaArrowRight /> Переместить
+          </button>
+          <button onClick={handleRenameSelected}>
+            <FaEdit /> Переименовать
           </button>
           <button onClick={handleDeleteSelected} className="danger">
             <FaTrash /> Удалить

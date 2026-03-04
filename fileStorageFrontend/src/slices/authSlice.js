@@ -78,8 +78,8 @@ const authSlice = createSlice({
             state.isAuth = false;
         },
         setAccess: (state, action) => {
-            console.log(action.payload.access)
             state.access = action.payload.access
+            state.isAuth = true;
         }
     }
 })

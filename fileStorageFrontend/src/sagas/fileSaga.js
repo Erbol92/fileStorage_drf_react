@@ -16,7 +16,11 @@ import {
   moveItemSuccess,
   searchFilesSuccess,
   fetchFilesFailure,
-  setUploadProgress
+  setUploadProgress,
+  renameItemRequest,
+  renameItemSuccess,
+  shareItemRequest,
+  shareItemSuccess,
 } from '../slices/fileSlice';
 import { authActions } from '../slices/authSlice';
 
@@ -84,14 +88,14 @@ function* fetchFolderContentSaga(action) {
 }
 
 function* uploadFileSaga(action) {
-  const { file, parentId, onProgress } = action.payload;
+  const { file, parentId, comment, onProgress } = action.payload;
   const progressCallback = (progressEvent) => {
       const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
       onProgress(file.name, percentCompleted);
     };
   try {
     // Создаем кастомный колбек для прогресса
-    const uploadedFile = yield call(api.uploadFile, file, parentId, progressCallback);
+    const uploadedFile = yield call(api.uploadFile, file, parentId, comment, progressCallback);
     yield put(uploadFileSuccess(uploadedFile));
   } catch (error) {
     if (error.response && error.response.status === 401) {
@@ -99,7 +103,7 @@ function* uploadFileSaga(action) {
         const requestAccessToken = yield call(api.fetchAccessToken);
         yield put(authActions.setAccess(requestAccessToken));
         // повторная попытка оригинального запроса
-        const uploadedFile = yield call(api.uploadFile, file, parentId, progressCallback);
+        const uploadedFile = yield call(api.uploadFile, file, parentId, comment, progressCallback);
         yield put(uploadFileSuccess(uploadedFile));
         return;
       } catch (refreshError) {
@@ -186,6 +190,28 @@ function* searchFilesSaga(action) {
   }
 }
 
+function* renameItemSaga(action) {
+  try {
+    const file = yield call(api.renameItem, action.payload);
+    yield put(renameItemSuccess(file));
+  } catch (error) {
+    yield put(fetchFilesFailure(error.message));
+  }
+}
+
+function* shareItemSaga(action) {
+  try {
+    const file = yield call(api.shareItem, action.payload);
+    // if (file.status==201) {
+      // const link = yield call(api.getShareLink, file.data.uid);
+      yield put(shareItemSuccess(file))
+    // }
+      
+  } catch (error) {
+    yield put(fetchFilesFailure(error.message));
+  }
+}
+
 // Watchers
 export function* watchFetchRoot() {
   yield takeLatest(fetchRootRequest.type, fetchRootSaga);
@@ -213,4 +239,12 @@ export function* watchMoveItem() {
 
 export function* watchSearchFiles() {
   yield takeLatest(searchFilesRequest.type, searchFilesSaga);
+}
+
+export function* watchRenameItem() {
+  yield takeLatest(renameItemRequest.type, renameItemSaga);
+}
+
+export function* watchShareItem() {
+  yield takeLatest(shareItemRequest.type, shareItemSaga);
 }

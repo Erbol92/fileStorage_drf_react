@@ -12,31 +12,9 @@ const api = axios.create({
 
 
 // Добавляем токен авторизации
-// api.interceptors.request.use((config) => {
-//   const raw = localStorage.getItem('persist:auth');
-//   const parsed = JSON.parse(raw);
-//   const token = typeof parsed.access === 'string' 
-//         ? parsed.access.replace(/^"|"$/g, '') 
-//         : parsed.access;
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   return config;
-// });
-
-// const getAccessTokenFromLS =()=>{
-//   const raw = localStorage.getItem('persist:auth');
-//   const parsed = JSON.parse(raw);
-//   const token = typeof parsed.access === 'string' 
-//         ? parsed.access.replace(/^"|"$/g, '') 
-//         : parsed.access;
-//   return `Bearer ${token}`
-// }
-
 api.interceptors.request.use((config) => {
   const state = store.getState();
   const token = state.auth?.access;
-  console.log(token)
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -60,10 +38,11 @@ export const fetchFolderContent = async (folderId) => {
   return response.data;
 };
 
-export const uploadFile = async (file, parentId, onProgress) => {
+export const uploadFile = async (file, parentId, comment, onProgress) => {
   const formData = new FormData();
   formData.append('name', file.name);
   formData.append('file', file);
+  formData.append('comment', comment);
   if (parentId) {
     formData.append('parent', parentId);
   }
@@ -100,4 +79,24 @@ export const moveItem = async (itemId, parentId) => {
 export const searchFiles = async (query) => {
   const response = await api.get(`/files/search/?q=${query}`);
   return response.data;
+};
+
+export const renameItem = async ({itemId, name}) => {
+  const response = await api.post(`/files/${itemId}/rename/`, {
+    name
+  });
+  return response.data;
+};
+
+export const shareItem = async (itemId) => {
+  const response = await api.post(`/files/${itemId}/share/`, {
+    itemId
+  });
+  console.log(response.data)
+  return response.data;
+};
+
+export const getShareLink = async (uuid) => {
+  const response = await api.get(`/download`,{ params: { uuid } });
+  return response.data.path;
 };
