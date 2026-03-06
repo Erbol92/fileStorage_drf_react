@@ -4,12 +4,10 @@ import { ROUTES } from '../routes/routes';
 
 
 export const ProtectedRoute = ({ children }) => {
-  const { isAuth } = useSelector(state => state.auth);
+  const { isStaff } = useSelector(state => state.auth);
 
-  console.log(isAuth)
-  if (!isAuth) {
-    return <Navigate to={ROUTES.HOME} replace />;
+  if (!isStaff) {
+    return <Navigate to={ROUTES.DASHBOARD} replace />;
   }
-  
   return children;
 };

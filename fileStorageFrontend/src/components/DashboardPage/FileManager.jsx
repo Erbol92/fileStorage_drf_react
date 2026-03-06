@@ -6,7 +6,7 @@ import {
   openCreateFolderModal,
   searchFilesRequest,
   clearError
-} from '../slices/fileSlice';
+} from '../../slices/fileSlice';
 import FileList from './FileList';
 import Breadcrumbs from './Breadcrumbs';
 import UploadModal from './UploadModal';

@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   createFolderRequest,
   closeCreateFolderModal
-} from '../slices/fileSlice';
+} from '../../slices/fileSlice';
 import { FaTimes } from 'react-icons/fa';
 
 const CreateFolderModal = () => {

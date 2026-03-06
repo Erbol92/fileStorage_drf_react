@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import { uploadFileRequest } from '../slices/fileSlice';
+import { uploadFileRequest } from '../../slices/fileSlice';
 import { FaTimes, FaCloudUploadAlt } from 'react-icons/fa';
 
 const UploadModal = ({ onClose, parentId }) => {

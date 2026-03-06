@@ -4,7 +4,7 @@ import { authActions } from '../slices/authSlice';
 import { useNavigate } from 'react-router';
 import { ROUTES } from '../routes/routes';
 import { useEffect } from 'react';
-import { FileManager } from '../components/FileManager';
+import { FileManager } from '../components/DashboardPage/FileManager';
 
 export const DashboardPage = () => {
   

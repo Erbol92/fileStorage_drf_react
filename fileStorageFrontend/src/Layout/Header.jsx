@@ -18,7 +18,18 @@ export const Header = () => {
             <ul className="p-0 m-0">
                 <li><NavLink 
                 className={({ isActive }) => isActive ? "active":""} 
-                to={ROUTES.HOME}>Главная</NavLink></li>
+                to={ROUTES.HOME}>Главная</NavLink>
+                </li>
+                <li><NavLink 
+                className={({ isActive }) => isActive ? "active":""} 
+                to={ROUTES.DASHBOARD}>Дашборд</NavLink>
+                </li>
+                {isStaff &&
+                <li><NavLink 
+                className={({ isActive }) => isActive ? "active":""} 
+                to={ROUTES.USER_ADMIN}>Панель администратора</NavLink>
+                </li>
+                }
             </ul>
             {username && (
             <div>

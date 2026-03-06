@@ -3,20 +3,21 @@ from datetime import timedelta
 import jwt
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status, permissions, viewsets
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from .models import RegistrationRequest
-from .serializers import RegistrationSerializer, MyTokenObtainPairSerializer
+from .serializers import RegistrationSerializer, UserSerializer
 from .utils import make_token, hash_token, error_response
 from .email import send_confirmation_email
 from rest_framework.renderers import JSONRenderer
 from django.shortcuts import redirect
 from urllib.parse import urlencode
 from storage_backend.settings import FRONTEND_URL
+from .permissions import IsStafforAdmin
 
 User = get_user_model()
 
@@ -203,8 +204,12 @@ class CustomTokenRefreshView(TokenRefreshView):
         # response.set_cookie(key="access", value=serializer.validated_data["access"], httponly=True, secure=False, path='/', domain=None)
         return response
 
-class TestPage(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
-    def get(self, request):
-        return Response({"detail":"heloo."}, status=status.HTTP_200_OK)
+class UserAdminView(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAuthenticated, IsStafforAdmin,)
+    serializer_class = UserSerializer
+    def get_queryset(self):
+        request = self.request
+        # Показываем пользователей кроме текущего
+        user = request.user
+        return User.objects.exclude(username=user)
 

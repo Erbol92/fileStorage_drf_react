@@ -5,7 +5,7 @@ import {
   closeMoveModal,
   fetchRootRequest,
   fetchFolderContentRequest
-} from '../slices/fileSlice';
+} from '../../slices/fileSlice';
 import { FaTimes, FaFolder, FaChevronRight } from 'react-icons/fa';
 
 const MoveModal = () => {

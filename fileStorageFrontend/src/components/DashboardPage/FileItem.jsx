@@ -4,7 +4,7 @@ import {
   deleteItemRequest,
   openMoveModal,
   shareItemRequest
-} from '../slices/fileSlice';
+} from '../../slices/fileSlice';
 import {
   FaFile,
   FaFolder,
@@ -20,8 +20,8 @@ import {
   FaSquare
 } from 'react-icons/fa';
 import { FcDownload, FcLink, FcLock  } from "react-icons/fc";
-import {CONFIG} from '../config'
-import { downloadUserFile } from '../api/fileApi'
+import {CONFIG} from '../../config'
+import { downloadUserFile } from '../../api/fileApi'
 
 const getFileIcon = (mimeType, isDirectory) => {
   if (isDirectory) return <FaFolder className="icon folder" />;

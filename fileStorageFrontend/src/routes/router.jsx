@@ -4,6 +4,8 @@ import { MainTemplate} from '../Layout/MainTemplate'
 import { AuthPage } from '../pages/AuthPage/AuthPage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { AuthInfo } from '../pages/AuthPage/AuthInfo'
+import { ProtectedRoute } from '../components/ProtectedRoute'
+import { AdminPage } from '../pages/AdminPage'
 
 export const router = createBrowserRouter([
     {
@@ -23,7 +25,10 @@ export const router = createBrowserRouter([
                 path: ROUTES.AUTH_INFO,
                 element: <AuthInfo />
             },
-
+            {
+                path: ROUTES.USER_ADMIN,
+                element: <ProtectedRoute children={<AdminPage/>} />
+            },
         ]
     }
 ])

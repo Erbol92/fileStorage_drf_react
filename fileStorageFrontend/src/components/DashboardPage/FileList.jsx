@@ -8,7 +8,7 @@ import {
   openMoveModal,
   openRenameModal,
   deleteItemRequest
-} from '../slices/fileSlice';
+} from '../../slices/fileSlice';
 import { FaTrash, FaArrowRight, FaEdit } from 'react-icons/fa';
 
 const FileList = ({ files, onFolderClick, currentFolder, onRefresh }) => {
