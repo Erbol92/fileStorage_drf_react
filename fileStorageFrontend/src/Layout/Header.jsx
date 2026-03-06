@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux"
 
 export const Header = () => {
     const dispatch = useDispatch();
-    const {access, username, isAuth} = useSelector(state=>state.auth)
+    const {access, username, isAuth, isStaff} = useSelector(state=>state.auth)
     const navigate = useNavigate();
     const handleLogout = () => {
         dispatch(authActions.logoutRequest(access));
@@ -22,8 +22,10 @@ export const Header = () => {
             </ul>
             {username && (
             <div>
-                <div className="avatar p-3 rounded-start-pill fw-bold bg-primary" >
-                    {username}
+                <div 
+                className="avatar p-3 rounded-start-pill fw-bold bg-primary" 
+                >
+                    {username} <br /> {isStaff ? "администратор":"пользователь"} 
                 </div>
                 <div onClick={handleLogout} className="avatar btn btn-danger p-3 rounded-end-pill fw-bold">
                     Выйти

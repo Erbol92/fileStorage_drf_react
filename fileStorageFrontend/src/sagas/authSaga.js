@@ -68,6 +68,7 @@ function* checkAuthRequest(action) {
             yield put(authActions.checkAuthSuccess());
             return
         }
+        console.log(response.status)
         if (response.status == 401 ) {
             const refreshResponse = yield call(fetch, `${CONFIG.API_URL}/token/refresh/`, {
                 method: "POST",

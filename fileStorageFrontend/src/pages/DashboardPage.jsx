@@ -13,7 +13,6 @@ export const DashboardPage = () => {
   
 
   useEffect(() => {
-    console.log(!isAuth, !loading)
     if (!isAuth && !loading) {
       // Показываем сообщение 1.5с, затем переходим
       const t = setTimeout(() => navigate(ROUTES.HOME, { replace: true }), 1500);

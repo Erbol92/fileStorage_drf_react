@@ -16,11 +16,12 @@ import {
   moveItemSuccess,
   searchFilesSuccess,
   fetchFilesFailure,
-  setUploadProgress,
   renameItemRequest,
   renameItemSuccess,
   shareItemRequest,
   shareItemSuccess,
+  stopAccessShareRequest,
+  stopAccessShareSuccess
 } from '../slices/fileSlice';
 import { authActions } from '../slices/authSlice';
 
@@ -33,23 +34,6 @@ function* fetchRootSaga() {
       breadcrumbs: [] 
     }));
   } catch (error) {
-    if (error.response && error.response.status === 401) {
-      try {
-        const requestAccessToken = yield call(api.fetchAccessToken);
-        yield put(authActions.setAccess(requestAccessToken));
-        // повторная попытка оригинального запроса
-        const files = yield call(api.fetchRoot);
-        yield put(fetchFilesSuccess({ 
-          files, 
-          currentFolder: null,
-          breadcrumbs: [] 
-        }));
-        return;
-      } catch (refreshError) {
-        yield put(fetchFilesFailure(refreshError.message));
-        return;
-      }
-    }
     yield put(fetchFilesFailure(error.message));
   }
 }
@@ -66,23 +50,6 @@ function* fetchFolderContentSaga(action) {
       }));
 
   } catch (error) {
-    if (error.response && error.response.status === 401) {
-      try {
-        const requestAccessToken = yield call(api.fetchAccessToken);
-        yield put(authActions.setAccess(requestAccessToken));
-        // повторная попытка оригинального запроса
-        const files = yield call(api.fetchFolderContent, folderId);
-        yield put(fetchFilesSuccess({
-          files,
-          currentFolder: { id: folderId, name: folderName },
-          breadcrumbs
-        }));
-        return;
-      } catch (refreshError) {
-        yield put(fetchFilesFailure(refreshError.message));
-        return;
-      }
-    }
     yield put(fetchFilesFailure(error.message));
   }
 }
@@ -98,19 +65,6 @@ function* uploadFileSaga(action) {
     const uploadedFile = yield call(api.uploadFile, file, parentId, comment, progressCallback);
     yield put(uploadFileSuccess(uploadedFile));
   } catch (error) {
-    if (error.response && error.response.status === 401) {
-      try {
-        const requestAccessToken = yield call(api.fetchAccessToken);
-        yield put(authActions.setAccess(requestAccessToken));
-        // повторная попытка оригинального запроса
-        const uploadedFile = yield call(api.uploadFile, file, parentId, comment, progressCallback);
-        yield put(uploadFileSuccess(uploadedFile));
-        return;
-      } catch (refreshError) {
-        yield put(fetchFilesFailure(refreshError.message));
-        return;
-      }
-    }
     yield put(fetchFilesFailure(error.message));
   }
 }
@@ -152,31 +106,6 @@ function* moveItemSaga(action) {
       yield put(fetchRootRequest());
     }
   } catch (error) {
-    if (error.response && error.response.status === 401) {
-      try {
-        const requestAccessToken = yield call(api.fetchAccessToken);
-        yield put(authActions.setAccess(requestAccessToken));
-        // повторная попытка оригинального запроса
-        const movedItem = yield call(api.moveItem, itemId, parentId);
-        yield put(moveItemSuccess(movedItem));
-        
-        // Обновляем текущую папку после перемещения
-        const currentFolderId = action.payload.currentFolderId;
-        if (currentFolderId) {
-          yield put(fetchFolderContentRequest({ 
-            folderId: currentFolderId,
-            folderName: action.payload.currentFolderName,
-            breadcrumbs: action.payload.breadcrumbs
-          }));
-        } else {
-          yield put(fetchRootRequest());
-        }
-        return;
-      } catch (refreshError) {
-        yield put(fetchFilesFailure(refreshError.message));
-        return;
-      }
-    }
     yield put(fetchFilesFailure(error.message));
   }
 }
@@ -201,12 +130,18 @@ function* renameItemSaga(action) {
 
 function* shareItemSaga(action) {
   try {
+    console.log(action.payload)
     const file = yield call(api.shareItem, action.payload);
-    // if (file.status==201) {
-      // const link = yield call(api.getShareLink, file.data.uid);
       yield put(shareItemSuccess(file))
-    // }
-      
+  } catch (error) {
+    yield put(fetchFilesFailure(error.message));
+  }
+}
+
+function* stopShareItemSaga(action) {
+  try {
+    const file = yield call(api.shareItem, action.payload);
+      yield put(shareItemSuccess(file))
   } catch (error) {
     yield put(fetchFilesFailure(error.message));
   }

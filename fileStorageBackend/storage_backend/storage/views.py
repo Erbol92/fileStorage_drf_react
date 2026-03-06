@@ -1,3 +1,5 @@
+import json
+
 from django.http import FileResponse
 from django.shortcuts import render
 
@@ -21,16 +23,36 @@ class FileViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         # Показываем только файлы текущего пользователя
-        return File.objects.filter(owner=self.request.user)
+        user = self.request.user
+        if (not user.is_staff):
+            return File.objects.filter(owner=self.request.user)
+        return File.objects.all()
     
     def perform_create(self, serializer):
+        parent_id = self.request.data.get('parent')
+        user = self.request.user
+        if (not parent_id):
+            parent = File.objects.get(parent = None, owner = user)
+        else:
+            parent = File.objects.get(id = parent_id)
+        if not user.is_staff:
+            owner = user
+        else: 
+            owner = parent.owner
         # Автоматически устанавливаем владельца
-        serializer.save(owner=self.request.user)
+        serializer.save(owner=owner, parent=parent)
+        parent.size = parent.calculate_size()
+        parent.save()
     
     @action(detail=False, methods=['get'])
     def root(self, request):
+        user = request.user
+        if (not user.is_staff):
+            parent = File.objects.get(parent = None, owner = request.user)
+        else:
+            parent = None
         """Получить файлы и папки в корневой директории"""
-        files = self.get_queryset().filter(parent=None)
+        files = self.get_queryset().filter(parent=parent)
         serializer = SimpleFileSerializer(files, many=True)
         return Response(serializer.data)
     
@@ -60,11 +82,13 @@ class FileViewSet(viewsets.ModelViewSet):
                 {"error": "Укажите имя папки"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
         # Проверяем родительскую папку
         parent = None
         if parent_id:
             parent = get_object_or_404(File, id=parent_id, owner=request.user)
+        else:
+            parent = get_object_or_404(File, parent=parent_id, owner=request.user)
+
             if not parent.is_directory:
                 return Response(
                     {"error": "Родитель должен быть папкой"}, 
@@ -87,6 +111,9 @@ class FileViewSet(viewsets.ModelViewSet):
         """Удалить файл или папку"""
         item = self.get_object()
         item.delete()
+        parent = item.parent
+        parent.size = parent.calculate_size()
+        parent.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
     @action(detail=True, methods=['post'])
@@ -94,17 +121,18 @@ class FileViewSet(viewsets.ModelViewSet):
         """Переместить файл или папку"""
         item = self.get_object()
         new_parent_id = request.data.get('parent')
-        
+        old_parent = item.parent
         # Если parent = null, перемещаем в корень
         if new_parent_id is None:
-            item.parent = None
-            item.save()
-            serializer = self.get_serializer(item)
-            return Response(serializer.data)
+            new_parent_id = File.objects.get(parent=None, owner=item.owner).id
+            # item.parent = File.objects.get(parent=None, owner=item.owner)
+            # item.save()
+            # serializer = self.get_serializer(item)
+            # return Response(serializer.data)
         
         # Иначе проверяем новую родительскую папку
-        new_parent = get_object_or_404(File, id=new_parent_id, owner=request.user)
-        
+        new_parent = get_object_or_404(File, id=new_parent_id, owner=item.owner)
+
         if not new_parent.is_directory:
             return Response(
                 {"error": "Можно перемещать только в папки"}, 
@@ -126,10 +154,14 @@ class FileViewSet(viewsets.ModelViewSet):
             if os.path.exists(old_physical_path):
                 os.makedirs(os.path.dirname(new_physical_path), exist_ok=True)
                 os.rename(old_physical_path, new_physical_path)
-                
                 # 6. Обновляем запись в БД
                 item.file.name = new_relative_path
                 item.save()
+                old_parent.size = old_parent.calculate_size()
+                old_parent.save()
+                new_parent.size = new_parent.calculate_size()
+                new_parent.save()
+                
         except Exception as e:
             return Response({"error": f"Ошибка при перемещении: {str(e)}"}, status=500)
         serializer = self.get_serializer(item)
@@ -156,8 +188,10 @@ class FileViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def share(self, request, pk=None):
+        stop = request.GET.get('stop')
+        stop = json.loads(stop.lower()) if stop else False
         item = self.get_object()
-        item.uid = uuid.uuid4()
+        item.uid = uuid.uuid4() if not stop else None
         item.save()
         serializer = FileSerializer(item)
         return Response(data=serializer.data,status=status.HTTP_201_CREATED)
@@ -177,11 +211,20 @@ class GuestDownloadFile(APIView):
     permission_classes= (AllowAny,)
 
     def get(self, request, uuid=None):
-        files = File.objects.filter(uid=uuid)
-        try:
-            file_obj = File.objects.get(uid=uuid)
-        except File.DoesNotExist:
-            return Response({"detail": "не могу найти файл"}, status=status.HTTP_404_NOT_FOUND)
+        id = request.GET.get('id')
+        user = request.user
+        if (id):
+            try:
+                file_obj = File.objects.get(id=id)
+                if file_obj.owner != user:
+                    return Response({"detail": "Вы не владелец"}, status=status.HTTP_401_UNAUTHORIZED)
+            except File.DoesNotExist:
+                return Response({"detail": "не могу найти файл"}, status=status.HTTP_404_NOT_FOUND)
+        if (uuid):
+            try:
+                file_obj = File.objects.get(uid=uuid)
+            except File.DoesNotExist:
+                return Response({"detail": "не могу найти файл"}, status=status.HTTP_404_NOT_FOUND)
 
         if not file_obj.file:
             return Response({"detail": "файл отсутствует"}, status=status.HTTP_404_NOT_FOUND)

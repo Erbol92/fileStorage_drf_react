@@ -11,7 +11,7 @@ def create_user_directory(sender, instance, **kwargs):
     user = instance
     folder_path = os.path.join(MEDIA_ROOT, user.username)
     folder = os.makedirs(folder_path, exist_ok=True)
-    File.objects.get_or_create(
+    file = File.objects.get_or_create(
         name=user.username,
         owner=user,
         is_directory=True,

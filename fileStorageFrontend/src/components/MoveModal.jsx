@@ -50,6 +50,7 @@ const MoveModal = () => {
         currentFolder: null,
         breadcrumbs: []
       });
+      setSelectedFolder(null)
       return;
     }
 

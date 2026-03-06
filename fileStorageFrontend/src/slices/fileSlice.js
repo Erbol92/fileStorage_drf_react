@@ -63,6 +63,10 @@ export const fileSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
+    stopAccessShareRequest: (state, action) => {
+      state.loading = true;
+      state.error = null;
+    },
     searchFilesRequest: (state, action) => {
       state.loading = true;
       state.error = null;
@@ -100,6 +104,11 @@ export const fileSlice = createSlice({
       state.renameModal.item = null;
     },
     shareItemSuccess: (state, action) => {
+      const item = action.payload
+      state.loading = false;
+      state.files = state.files.map(file=>file.id === item.id ? { ...file, uid: item.uid } : file)
+    },
+    stopAccessShareSuccess: (state, action) => {
       const item = action.payload
       state.loading = false;
       state.files = state.files.map(file=>file.id === item.id ? { ...file, uid: item.uid } : file)
@@ -192,5 +201,7 @@ export const {
   closeRenameModal,
   clearError,
   shareItemRequest,
-  shareItemSuccess
+  shareItemSuccess,
+  stopAccessShareRequest,
+  stopAccessShareSuccess
 } = fileSlice.actions;

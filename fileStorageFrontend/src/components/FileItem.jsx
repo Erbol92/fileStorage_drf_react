@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   deleteItemRequest,
@@ -19,8 +19,9 @@ import {
   FaCheckSquare,
   FaSquare
 } from 'react-icons/fa';
-import { FcDownload, FcLink  } from "react-icons/fc";
+import { FcDownload, FcLink, FcLock  } from "react-icons/fc";
 import {CONFIG} from '../config'
+import { downloadUserFile } from '../api/fileApi'
 
 const getFileIcon = (mimeType, isDirectory) => {
   if (isDirectory) return <FaFolder className="icon folder" />;
@@ -81,6 +82,7 @@ const FileItem = ({
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
+  const menuRef = useRef(null);
 
   const handleContextMenu = (e) => {
     e.preventDefault();
@@ -118,33 +120,65 @@ const FileItem = ({
 
   const downloadFile = async (file) => {
     try {
-      const response = await fetch(CONFIG.BACKEND_URL + file.file);
-      const blob = await response.blob();
-      const href = window.URL.createObjectURL(blob);
+      const blob = await downloadUserFile(file.id);
+      const href = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = href;
       link.setAttribute('download', file.name);
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
+      window.URL.revokeObjectURL(href);
     } catch (error) {
       console.error('Ошибка скачивания:', error);
     }
     setShowMenu(false);
   };
 
-  const shareFile = async (file) => {
-    dispatch(shareItemRequest(file.id))
+
+  const shareFile = async (id) => {
+    dispatch(shareItemRequest({id}))
     setShowMenu(false);
   };
 
+  useEffect(() => {
+    if (!showMenu) return;
+
+    const handleOutsideClick = (e) => {
+      // если клик вне меню — скрыть
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false);
+      }
+    };
+
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setShowMenu(false);
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+    document.addEventListener('keydown', handleEsc);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [showMenu]);
+
   const copyToClipboard = async (text) => {
-  try {
-    await navigator.clipboard.writeText(`${CONFIG.API_URL}/download/${text}`);
-  } catch (err) {
-    console.error(err)
+    try {
+      await navigator.clipboard.writeText(`${CONFIG.API_URL}/download/${text}`);
+      setShowMenu(false)
+    } catch (err) {
+      console.error(err)
+    }
+  };
+  const stopAccessShare = async(id) => {
+    dispatch(shareItemRequest({id, "stop":true}))
+    setShowMenu(false);
   }
-};
+
   return (
     <>
       <div
@@ -167,9 +201,7 @@ const FileItem = ({
             {file.name}
           </div>
           <div className="file-meta">
-            {!file.is_directory && (
-              <span className="file-size">{formatSize(file.size)}</span>
-            )}
+            <span className="file-size">{formatSize(file.size)}</span>
             <span className="file-date">{formatDate(file.created_at)}</span>
           </div>
           {
@@ -186,23 +218,33 @@ const FileItem = ({
         <div 
           className="context-menu"
           style={{ top: menuPosition.y, left: menuPosition.x }}
+          ref={menuRef}
         >
-          <div className="menu-item" onClick={handleMove}>
-            <FaArrowRight /> Переместить
-          </div>
-          <div className="menu-item" onClick={()=>downloadFile(file)}>
-            <FcDownload /> Скачать
-          </div>
-          {!file.uid ? 
-            <div className="menu-item" onClick={()=>shareFile(file)}>
-              <FcLink /> поделиться
+          {
+          !file.is_directory && 
+          <>
+            <div className="menu-item" onClick={handleMove}>
+              <FaArrowRight /> Переместить
             </div>
-            :
-            <div className="menu-item sharedLink" onClick={()=>copyToClipboard(file.uid)}>
-              <FcLink /> копировать ссылку
+            <div className="menu-item" onClick={()=>downloadFile(file)}>
+              <FcDownload /> Скачать
             </div>
+            {!file.uid ? 
+              <div className="menu-item" onClick={()=>shareFile(file.id)}>
+                <FcLink /> поделиться
+              </div>
+              :
+              <div className="d-flex">
+                <div className="menu-item sharedLink" onClick={()=>copyToClipboard(file.uid)}>
+                  <FcLink /> копировать ссылку
+                </div>
+                <div className="menu-item sharedLink" onClick={()=>stopAccessShare(file.id)}>
+                  <FcLock />
+                </div>
+              </div>
+            }
+            </>
           }
-          
           <div className="menu-item danger" onClick={handleDelete}>
             <FaTrash /> Удалить
           </div>

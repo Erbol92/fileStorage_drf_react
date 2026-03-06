@@ -108,6 +108,14 @@ class File(models.Model):
             return self._format_size(total_size)
         return self._format_size(self.size)
     
+    def calculate_size(self):
+        """Форматирование размера"""
+        if self.is_directory:
+            # Суммируем размеры всех файлов в папке
+            total_size = sum(child.size for child in self.children.all())
+            return total_size
+        return total_size
+    
     @staticmethod
     def _format_size(size):
         """Форматирование размера"""
