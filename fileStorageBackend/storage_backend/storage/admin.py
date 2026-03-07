@@ -6,3 +6,4 @@ from .models import File
 @admin.register(File)
 class FileAdmin(admin.ModelAdmin):
     list_filter=['parent','owner']
+    list_display = ['name','is_directory','mime_type','updated_at','created_at']

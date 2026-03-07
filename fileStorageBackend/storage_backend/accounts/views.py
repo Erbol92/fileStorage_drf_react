@@ -11,13 +11,14 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from .models import RegistrationRequest
 from .serializers import RegistrationSerializer, UserSerializer
-from .utils import make_token, hash_token, error_response
+from .utils import make_token, hash_token, error_response, to_bool
 from .email import send_confirmation_email
 from rest_framework.renderers import JSONRenderer
 from django.shortcuts import redirect
 from urllib.parse import urlencode
 from storage_backend.settings import FRONTEND_URL
 from .permissions import IsStafforAdmin
+from rest_framework.decorators import action
 
 User = get_user_model()
 
@@ -207,9 +208,24 @@ class CustomTokenRefreshView(TokenRefreshView):
 class UserAdminView(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, IsStafforAdmin,)
     serializer_class = UserSerializer
+
     def get_queryset(self):
         request = self.request
         # Показываем пользователей кроме текущего
         user = request.user
         return User.objects.exclude(username=user)
-
+    
+    @action(detail=True, methods=['post'])
+    def update_permissions(self, request, pk=None):
+        """сменить права"""
+        user = self.get_object()
+        is_staff = to_bool(request.data.get('is_staff'))
+        is_superuser = to_bool(request.data.get('is_superuser'))
+        print(is_staff, is_superuser)
+        if is_superuser is not None:
+            user.is_superuser = is_superuser
+        if is_staff is not None:
+            user.is_staff = is_staff
+        user.save()
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)

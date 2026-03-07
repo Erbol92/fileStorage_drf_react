@@ -7,7 +7,9 @@ from storage_backend.settings import MEDIA_ROOT
 # from storage.models import File
 
 @receiver(post_save, sender=User)
-def create_user_directory(sender, instance, **kwargs):
+def create_user_directory(sender, instance, created, **kwargs):
+    if not created:
+        return
     user = instance
     folder_path = os.path.join(MEDIA_ROOT, user.username)
     folder = os.makedirs(folder_path, exist_ok=True)

@@ -101,12 +101,12 @@ api.interceptors.response.use(
         // Повторяем оригинальный запрос
         return api(originalRequest);
       }
-      catch (error) {
+      catch (refreshError) {
         // Если не удалось обновить токен - очищаем очередь с ошибкой
         processQueue(refreshError, null);
         
         // Очищаем токены в Redux store
-        // store.dispatch(authActions.logout());
+        store.dispatch(authActions.logout());
         
         // Редирект на страницу логина
         // window.location.href = '/login';

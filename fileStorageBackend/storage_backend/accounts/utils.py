@@ -35,3 +35,15 @@ def make_token():
 
 def hash_token(token):
     return hashlib.sha256(token.encode()).hexdigest()
+
+def to_bool(val):
+    if isinstance(val, bool):
+        return val
+    if val is None:
+        return None
+    if isinstance(val, str):
+        return val.lower() in ('1', 'true', 'yes', 'on')
+    try:
+        return bool(int(val))
+    except Exception:
+        return None

@@ -11,7 +11,20 @@ function* fetchUsersSaga() {
   }
 }
 
+function* changeUserPermissionSaga(action) {
+  try {
+    const user = yield call(api.changeUserPermission, action.payload);
+    yield put(adminActions.changePermissionSuccess(user));
+  } catch (error) {
+    yield put(adminActions.usersFailure(error.message));
+  }
+}
+
 // Watchers
 export function* watchFetchUsers() {
   yield takeLatest(adminActions.usersRequest.type, fetchUsersSaga);
+}
+
+export function* watchChangeUserPermission() {
+  yield takeLatest(adminActions.changePermissionRequest.type, changeUserPermissionSaga);
 }

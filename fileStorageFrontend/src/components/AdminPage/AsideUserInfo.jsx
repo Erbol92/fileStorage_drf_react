@@ -1,40 +1,57 @@
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { adminActions } from "../../slices/adminSlice";
 
 export const AsideUserInfo = ({activeUser}) => {
     const [changed, setChanged] = useState(false)
-    const [isSuper, setIsSuper] = useState(null);
+    const [isSuper, setIsSuper] = useState(false);
+    const [isStaff, setIsStaff] = useState(false);
+    const dispatch = useDispatch()
 
     useEffect(() => {
         if (activeUser) {
             setIsSuper(Boolean(activeUser.is_superuser));
+            setIsStaff(Boolean(activeUser.is_staff));
             setChanged(false);
         }
     }, [activeUser]);
 
     useEffect(() => {
         if (activeUser) {
-            setChanged(isSuper !== Boolean(activeUser.is_superuser));
+            setChanged(isSuper !== Boolean(activeUser.is_superuser) || isStaff !== Boolean(activeUser.is_staff));
         }
-    }, [isSuper, activeUser]);
+    }, [isSuper, isStaff, activeUser]);
 
-    const handleToggle = async () => {
+    const handleToggleSuper = async () => {
         const newValue = !isSuper;
         setIsSuper(newValue);
-  };
+    };
+    const handleToggleStaff = async () => {
+        const newValue = !isStaff;
+        setIsStaff(newValue);
+    };
 
     const changePermission = () => {
-        console.log(activeUser.id)
-        console.log(changed)
+        dispatch(adminActions.changePermissionRequest({
+            userId: activeUser.id,
+            isSuperUser: isSuper,
+            isStaff: isStaff,
+        }))
     }
     return (
             <>
             { activeUser && 
             <div className="text-start ms-3 p-3">
                 <p><span className="fw-bold">Активная УЗ:</span> {activeUser.is_active ? "✓" : "✖"}</p>
-                <p><span className="fw-bold">Сотрудник:</span> {activeUser.is_staff ? "✓" : "✖"}</p>
                 <p><span className="fw-bold">Эл. почта:</span> {activeUser.email ? activeUser.email : "✖"}</p>
                 <div className="form-check">
-                    <input className="form-check-input" type="checkbox" id="admin" checked={isSuper} onChange={handleToggle}/>
+                    <input className="form-check-input" type="checkbox" id="staff" checked={isStaff} onChange={handleToggleStaff}/>
+                    <label className="form-check-label" htmlFor="staff">
+                        Сотрудник
+                    </label>
+                </div>
+                <div className="form-check">
+                    <input className="form-check-input" type="checkbox" id="admin" checked={isSuper} onChange={handleToggleSuper}/>
                     <label className="form-check-label" htmlFor="admin">
                         Администратор
                     </label>
