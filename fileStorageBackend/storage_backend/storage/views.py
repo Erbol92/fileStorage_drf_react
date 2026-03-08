@@ -14,6 +14,7 @@ from .models import File
 from .serializers import FileSerializer, SimpleFileSerializer
 from .models import user_directory_path
 from storage_backend.settings import MEDIA_ROOT
+from datetime import datetime
 import os
 import uuid
 
@@ -156,6 +157,7 @@ class FileViewSet(viewsets.ModelViewSet):
                 os.rename(old_physical_path, new_physical_path)
                 # 6. Обновляем запись в БД
                 item.file.name = new_relative_path
+                item.updated_at = datetime.now()
                 item.save()
                 old_parent.size = old_parent.calculate_size()
                 old_parent.save()
@@ -181,10 +183,11 @@ class FileViewSet(viewsets.ModelViewSet):
                 os.rename(old_physical_path, new_physical_path)
                 # 6. Обновляем запись в БД
                 item.file.name = new_relative_path
+                item.updated_at = datetime.now()
                 item.save()
         except Exception as e:
             return Response({"error": f"Ошибка при переименовании: {str(e)}"}, status=500)
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(data=FileSerializer(item).data,status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
     def share(self, request, pk=None):
@@ -192,6 +195,7 @@ class FileViewSet(viewsets.ModelViewSet):
         stop = json.loads(stop.lower()) if stop else False
         item = self.get_object()
         item.uid = uuid.uuid4() if not stop else None
+        item.updated_at = datetime.now()
         item.save()
         serializer = FileSerializer(item)
         return Response(data=serializer.data,status=status.HTTP_201_CREATED)
@@ -234,6 +238,10 @@ class GuestDownloadFile(APIView):
             fh = file_obj.file.open('rb')
         except Exception:
             return Response({"detail": "ошибка открытия файла"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        file_obj.downloaded_at = datetime.now()
+        file_obj.save()
         response = FileResponse(fh, as_attachment=True, filename=file_obj.file.name.split('/')[-1])
+        response['Access-Control-Expose-Headers'] = 'X-File-Id, X-Downloaded-At'
+        response['X-File-Id'] = str(file_obj.id)
+        response['X-Downloaded-At'] = file_obj.downloaded_at.isoformat()
         return response

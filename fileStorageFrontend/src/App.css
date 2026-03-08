@@ -376,7 +376,6 @@ body {
   color: var(--text-secondary);
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
 }
 
 /* Context Menu */

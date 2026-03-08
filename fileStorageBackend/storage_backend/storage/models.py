@@ -18,7 +18,7 @@ def user_directory_path(instance, filename):
         current_parent = current_parent.parent
     
     # В начале всегда имя пользователя
-    parts.insert(0, instance.owner.username)
+    # parts.insert(0, instance.owner.username)
     
     # В конце имя самого загружаемого файла
     parts.append(filename)
@@ -44,7 +44,8 @@ class File(models.Model):
     uid = models.UUIDField(null=True,blank=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files')
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
+    downloaded_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         ordering = ['-is_directory', 'name']

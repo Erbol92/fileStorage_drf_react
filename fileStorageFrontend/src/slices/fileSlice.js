@@ -99,6 +99,8 @@ export const fileSlice = createSlice({
       state.moveModal.item = null;
     },
     renameItemSuccess: (state, action) => {
+      const item = action.payload
+      state.files = state.files.map(file=>file.id === item.id ? { ...file, updated_at: item.updated_at } : file)
       state.loading = false;
       state.renameModal.isOpen = false;
       state.renameModal.item = null;
@@ -116,6 +118,11 @@ export const fileSlice = createSlice({
     searchFilesSuccess: (state, action) => {
       state.loading = false;
       state.files = action.payload;
+    },
+    updateAfterDownloadFileSuccess: (state, action) => {
+      const downloadedFile = action.payload
+      console.log(downloadedFile.id, downloadedFile.downloaded_at)
+      state.files = state.files.map(file => file.id === downloadedFile.id ? {...file, downloaded_at: downloadedFile.downloaded_at} : file);
     },
 
     // Ошибки
@@ -203,5 +210,6 @@ export const {
   shareItemRequest,
   shareItemSuccess,
   stopAccessShareRequest,
-  stopAccessShareSuccess
+  stopAccessShareSuccess,
+  updateAfterDownloadFileSuccess
 } = fileSlice.actions;

@@ -83,7 +83,19 @@ export const getShareLink = async (uuid) => {
 export const downloadUserFile = async (itemId) => {
   const response = await api.get(`/download`, { 
     params: { "id": itemId },
-    responseType: 'blob' 
+    responseType: 'blob',
+    headers: {
+      'Access-Control-Expose-Headers': 'X-File-Id, X-Downloaded-At'
+    }
   });
-  return response.data;
+  const fileId = response.headers['x-file-id'] || response.headers['X-File-Id'];
+  const downloadedAt = response.headers['x-downloaded-at'] || response.headers['X-Downloaded-At'];
+  return {
+    blob: response.data,
+    metadata: {
+      id: fileId ? parseInt(fileId) : null,
+      downloaded_at: downloadedAt || null
+    },
+    headers: response.headers
+  };
 };

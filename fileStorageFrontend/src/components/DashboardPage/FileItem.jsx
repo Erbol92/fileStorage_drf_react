@@ -3,7 +3,8 @@ import { useDispatch } from 'react-redux';
 import {
   deleteItemRequest,
   openMoveModal,
-  shareItemRequest
+  shareItemRequest,
+  updateAfterDownloadFileSuccess
 } from '../../slices/fileSlice';
 import {
   FaFile,
@@ -57,8 +58,8 @@ const formatDate = (dateString) => {
   
   const diffTime = Math.abs(now - date);
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return 'Сегодня';
-  if (diffDays === 1) return 'Вчера';
+  if (diffDays === 0) return 'сегодня';
+  if (diffDays === 1) return 'вчера';
   if (diffDays < 7) return `${diffDays} дней назад`;
   
   return date.toLocaleDateString('ru-RU', {
@@ -83,7 +84,6 @@ const FileItem = ({
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
   const menuRef = useRef(null);
-
   const handleContextMenu = (e) => {
     e.preventDefault();
     setMenuPosition({ x: e.clientX, y: e.clientY });
@@ -120,7 +120,15 @@ const FileItem = ({
 
   const downloadFile = async (file) => {
     try {
-      const blob = await downloadUserFile(file.id);
+      const result = await downloadUserFile(file.id);
+      
+      const blob = result.blob
+      if (result.metadata.id) {
+      dispatch(updateAfterDownloadFileSuccess({
+        id: result.metadata.id,
+        downloaded_at: result.metadata.downloaded_at
+      }));
+    }
       const href = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = href;
@@ -200,9 +208,16 @@ const FileItem = ({
           <div className="file-name" title={file.name}>
             {file.name}
           </div>
-          <div className="file-meta">
+          <div className="file-meta d-flex flex-column">
             <span className="file-size">{formatSize(file.size)}</span>
-            <span className="file-date">{formatDate(file.created_at)}</span>
+            <span className="file-date">создан: {formatDate(file.created_at)}</span>
+            { 
+              !file.is_directory && 
+              <>
+              {file.updated_at && <span className="file-date">обновлен: {formatDate(file.updated_at)}</span>}
+              {file.downloaded_at && <span className="file-date">скачан: {formatDate(file.downloaded_at)}</span>}
+              </>
+            }
           </div>
           {
           file.comment && hovered &&
