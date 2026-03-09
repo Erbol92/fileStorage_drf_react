@@ -20,6 +20,15 @@ function* changeUserPermissionSaga(action) {
   }
 }
 
+function* deleteUserSaga(action) {
+  try {
+    const userId = yield call(api.deleteUser, action.payload);
+    yield put(adminActions.deleteUserSuccess(userId));
+  } catch (error) {
+    yield put(adminActions.usersFailure(error.message));
+  }
+}
+
 // Watchers
 export function* watchFetchUsers() {
   yield takeLatest(adminActions.usersRequest.type, fetchUsersSaga);
@@ -27,4 +36,8 @@ export function* watchFetchUsers() {
 
 export function* watchChangeUserPermission() {
   yield takeLatest(adminActions.changePermissionRequest.type, changeUserPermissionSaga);
+}
+
+export function* watchDeleteUser() {
+  yield takeLatest(adminActions.deleteUserRequest.type, deleteUserSaga);
 }

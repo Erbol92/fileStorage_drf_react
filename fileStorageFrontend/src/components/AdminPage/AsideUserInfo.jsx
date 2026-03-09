@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { adminActions } from "../../slices/adminSlice";
+import { Confirm } from "../Confirm/Confirm";
 
 export const AsideUserInfo = ({activeUser}) => {
     const [changed, setChanged] = useState(false)
     const [isSuper, setIsSuper] = useState(false);
     const [isStaff, setIsStaff] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
     const dispatch = useDispatch()
 
     useEffect(() => {
@@ -39,8 +41,8 @@ export const AsideUserInfo = ({activeUser}) => {
         }))
     }
     return (
-            <>
-            { activeUser && 
+        <>
+        { activeUser && 
             <div className="text-start ms-3 p-3">
                 <p><span className="fw-bold">Активная УЗ:</span> {activeUser.is_active ? "✓" : "✖"}</p>
                 <p><span className="fw-bold">Эл. почта:</span> {activeUser.email ? activeUser.email : "✖"}</p>
@@ -56,9 +58,13 @@ export const AsideUserInfo = ({activeUser}) => {
                         Администратор
                     </label>
                 </div>
-            <button onClick={changePermission} className="btn btn-sm btn-outline-primary mt-2" disabled={!changed}>применить</button>
+                <div className="d-flex mt-2">
+                    <button onClick={changePermission} className="btn btn-sm btn-outline-primary" disabled={!changed}>применить</button>
+                    <button onClick={()=>setShowConfirm(true)} className="btn btn-sm btn-outline-danger">удалить</button> 
+                </div>
             </div>
-            }
-            </>
+        }
+        { showConfirm && <Confirm foo={()=>dispatch(adminActions.deleteUserRequest(activeUser.id))} text={`удалить пользователя ${activeUser.username}?`} showConfirm={setShowConfirm}/>}
+        </>
     )
 }

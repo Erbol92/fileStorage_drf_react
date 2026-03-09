@@ -229,3 +229,10 @@ class UserAdminView(viewsets.ModelViewSet):
         user.save()
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['delete'])
+    def delete_user(self, request, pk=None):
+        """Удалить пользователя"""
+        user = self.get_object()
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

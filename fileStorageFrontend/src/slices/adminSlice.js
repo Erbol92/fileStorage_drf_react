@@ -32,6 +32,15 @@ export const adminSlice = createSlice({
                 ? {...user, is_superuser: changedUser.is_superuser, is_staff: changedUser.is_staff}
                 : user);
         },
+        deleteUserRequest: (state, action) => {
+            state.loading = true;
+            state.error = null;
+        },
+        deleteUserSuccess: (state, action) => {
+            const userId = action.payload
+            state.loading = false;
+            state.users = state.users.filter(user=>user.id !== userId)
+        },
         usersFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;

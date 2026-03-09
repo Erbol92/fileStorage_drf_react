@@ -12,3 +12,8 @@ export const changeUserPermission = async ({userId, isStaff=null, isSuperUser=nu
   });
   return response.data;
 };
+
+export const deleteUser = async (userId) => {
+  await api.delete(`/users/${userId}/delete_user/`);
+  return userId;
+};
