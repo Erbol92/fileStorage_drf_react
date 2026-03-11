@@ -31,6 +31,7 @@ export const FileManager = () => {
   const [searchTimeout, setSearchTimeout] = useState(null);
 
   useEffect(() => {
+    console.log('asd')
     dispatch(fetchRootRequest());
   }, [dispatch]);
 

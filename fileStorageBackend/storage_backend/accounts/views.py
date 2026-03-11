@@ -12,7 +12,7 @@ from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from .models import RegistrationRequest
 from .serializers import RegistrationSerializer, UserSerializer
 from .utils import make_token, hash_token, error_response, to_bool
-from .email import send_confirmation_email
+from .tasks import send_confirmation_email
 from rest_framework.renderers import JSONRenderer
 from django.shortcuts import redirect
 from urllib.parse import urlencode
@@ -81,7 +81,6 @@ class ConfirmRegistrationView(APIView):
     def get(self, request):
         token = request.query_params.get('token')
         if not token:
-            # return Response({"detail":"Требуется токен."}, status=status.HTTP_400_BAD_REQUEST)
             error_url = f"{FRONTEND_URL}/auth?error=no_token"
             return redirect(error_url)
         token_h = hash_token(token)

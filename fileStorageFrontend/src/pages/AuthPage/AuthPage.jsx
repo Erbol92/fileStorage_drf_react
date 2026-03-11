@@ -6,32 +6,19 @@ import { ROUTES } from "../../routes/routes";
 import { Login } from "./Login";
 import { Register } from "./Register";
 import './AuthPage.css'
-import { InfoAlert } from "../../components/InfoAlert";
+import { Loader } from "../../components/Loader/Loader";
 
 export const AuthPage = () => {
     const dispatch = useDispatch();
-    const {loading, error, isAuth, access, errorAccess} = useSelector(state=>state.auth)
-    const [showAlert, setShowAlert] = useState(false);
+    const {loading, isAuth, access} = useSelector(state=>state.auth)
+    const {loading: regLoading} = useSelector(state=>state.reg)
+    
     const [isActive, setIsActive] = useState('login');
     useEffect(()=>{
         if (access) {
             dispatch(authActions.checkAuthRequest(access))
         }
         },[dispatch])
-
-
-    useEffect(()=>{
-        if (errorAccess) {
-            setShowAlert(true);
-            
-            // Автоматически скрываем через 5 секунд
-            const timer = setTimeout(() => {
-                setShowAlert(false);
-            }, 5000);
-            
-            return () => clearTimeout(timer);
-        }
-    },[errorAccess])
 
     if (isAuth) {
         return <Navigate to={ROUTES.DASHBOARD} replace />; 
@@ -58,12 +45,8 @@ export const AuthPage = () => {
             </button>
         </div>
         { isActive==='login' ? <Login/> : <Register/> }
-        {showAlert && errorAccess && (
-            <InfoAlert 
-                message="" 
-                error={errorAccess}
-            />
-        )}
+        
+        {loading || regLoading && <Loader/>}
         </>
     )
 }

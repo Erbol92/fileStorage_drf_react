@@ -3,7 +3,6 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialData = {
     loading: false,
     error: null,
-    isPreRegister: false,
     message: null,
 }
 
@@ -25,8 +24,11 @@ export const registerSlice = createSlice({
         registerFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
-            state.isPreRegister = false;
         },
+        clearErrMess:(state) => {
+            state.error = null;
+            state.message = null;
+        }
     }
 })
 

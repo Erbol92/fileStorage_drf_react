@@ -16,7 +16,11 @@ function* loginRequest(action) {
         };
         const response = yield call(fetch, `${CONFIG.API_URL}/token/`, params);
         const data = yield response.json();
-        yield put(authActions.loginSuccess(data));
+        if (response.ok) {
+            yield put(authActions.loginSuccess(data));
+        } else {
+            yield put(authActions.loginFailure(data.detail));
+        }
     } catch (error) {
         yield put(authActions.loginFailure(error.message));
     }

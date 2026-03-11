@@ -10,10 +10,16 @@ class RegistrationSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150, required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, min_length=8)
     password2 = serializers.CharField(write_only=True, min_length=8)
-
+    
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Пароли не совпадают."})
+        try:
+            validate_password(attrs.get("password"))
+        except Exception as e:
+            if isinstance(e, serializers.ValidationError):
+                raise serializers.ValidationError({"password": list(e.messages)})
+            raise
         return attrs
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):

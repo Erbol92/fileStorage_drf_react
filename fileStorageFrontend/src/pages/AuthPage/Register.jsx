@@ -9,21 +9,24 @@ export const Register = () => {
     const [password2, setPassword_2] = useState('');
     const [email, setEmail] = useState('');
     const dispatch = useDispatch();
-    const {loading, error, isPreRegister, message } = useSelector(state=>state.reg)
+    const {loading, error, message } = useSelector(state=>state.reg)
     const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
         if (message || error) {
             setShowAlert(true);
-            
             // Автоматически скрываем через 5 секунд
             const timer = setTimeout(() => {
                 setShowAlert(false);
             }, 5000);
             
-            return () => clearTimeout(timer);
+            return () => {
+                dispatch(registerActions.clearErrMess())
+                clearTimeout(timer);
+            }
         }
     }, [message, error]);
+
     const handleRegister = (e) => {
         e.preventDefault();
         
@@ -39,7 +42,6 @@ export const Register = () => {
             password2
         };
         dispatch(registerActions.registerRequest(data));
-        console.log('Register data:', data);
     };
 
 

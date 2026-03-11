@@ -80,6 +80,10 @@ const authSlice = createSlice({
         setAccess: (state, action) => {
             state.access = action.payload.access
             state.isAuth = true;
+        },
+        clearErr: (state) => {
+            state.errorAccess=null;
+            state.error=null;
         }
     }
 })
