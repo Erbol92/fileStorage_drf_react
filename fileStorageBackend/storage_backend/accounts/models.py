@@ -8,6 +8,7 @@ class RegistrationRequest(models.Model):
     password_hash = models.CharField(max_length=255)  # Django password hasher output
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
+    is_email_sent = models.BooleanField(default=False)
 
     def is_expired(self):
         return timezone.now() > self.expires_at

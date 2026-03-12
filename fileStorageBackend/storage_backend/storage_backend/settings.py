@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders', 
     'drf_api_logger',
+    'django_celery_results',
 ]
 
 INSTALLED_APPS += ['accounts','storage',]
@@ -206,3 +207,8 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
+
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_TASK_IGNORE_RESULT = False
+CELERY_RESULT_EXPIRES = 86400  
+CELERY_RESULT_EXTENDED = True

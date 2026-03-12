@@ -19,6 +19,7 @@ from urllib.parse import urlencode
 from storage_backend.settings import FRONTEND_URL
 from .permissions import IsStafforAdmin
 from rest_framework.decorators import action
+from celery.result import AsyncResult
 
 User = get_user_model()
 
@@ -61,17 +62,21 @@ class RegisterView(APIView):
         # Хэш-пароль
         password_hash = make_password(data['password'])
         expires_at = timezone.now() + timedelta(hours=1)
-
-        RegistrationRequest.objects.create(
-            email=email,
-            username=data.get('username',''),
-            token_hash=token_h,
-            password_hash=password_hash,
-            expires_at=expires_at
-        )
-
-        send_confirmation_email(request, email, token)
+        verify_url = request.build_absolute_uri(f"/api/confirm-registration/?token={token}")
+        reg_request = RegistrationRequest.objects.create(
+                email=email,
+                username=data.get('username',''),
+                token_hash=token_h,
+                password_hash=password_hash,
+                expires_at=expires_at,
+                is_email_sent=False
+            )
+        send_confirmation_email.delay(reg_id=reg_request.id,verify_url=verify_url, email=email)
         return Response({"message":"Электронное письмо с подтверждением отправлено."}, status=status.HTTP_201_CREATED)
+        
+        
+
+        
 
 
 class ConfirmRegistrationView(APIView):
