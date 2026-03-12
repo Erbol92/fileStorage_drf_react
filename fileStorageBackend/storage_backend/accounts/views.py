@@ -23,6 +23,7 @@ from celery.result import AsyncResult
 
 User = get_user_model()
 
+
 class RegisterView(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -62,21 +63,19 @@ class RegisterView(APIView):
         # Хэш-пароль
         password_hash = make_password(data['password'])
         expires_at = timezone.now() + timedelta(hours=1)
-        verify_url = request.build_absolute_uri(f"/api/confirm-registration/?token={token}")
+        verify_url = request.build_absolute_uri(
+            f"/api/confirm-registration/?token={token}")
         reg_request = RegistrationRequest.objects.create(
-                email=email,
-                username=data.get('username',''),
-                token_hash=token_h,
-                password_hash=password_hash,
-                expires_at=expires_at,
-                is_email_sent=False
-            )
-        send_confirmation_email.delay(reg_id=reg_request.id,verify_url=verify_url, email=email)
-        return Response({"message":"Электронное письмо с подтверждением отправлено."}, status=status.HTTP_201_CREATED)
-        
-        
-
-        
+            email=email,
+            username=data.get('username', ''),
+            token_hash=token_h,
+            password_hash=password_hash,
+            expires_at=expires_at,
+            is_email_sent=False
+        )
+        send_confirmation_email.delay(
+            reg_id=reg_request.id, verify_url=verify_url, email=email)
+        return Response({"message": "Электронное письмо с подтверждением отправлено."}, status=status.HTTP_201_CREATED)
 
 
 class ConfirmRegistrationView(APIView):
@@ -92,27 +91,24 @@ class ConfirmRegistrationView(APIView):
         try:
             req = RegistrationRequest.objects.get(token_hash=token_h)
         except RegistrationRequest.DoesNotExist:
-            # return Response({"detail":"Недействительный или просроченный токен."}, status=status.HTTP_400_BAD_REQUEST)
             error_url = f"{FRONTEND_URL}/auth?error=Недействительный или просроченный токен"
             return redirect(error_url)
-        
+
         if req.is_expired():
             req.delete()
-            # return Response({"detail":"просроченный токен."}, status=status.HTTP_400_BAD_REQUEST)
             error_url = f"{FRONTEND_URL}/auth?error=просроченный токен"
             return redirect(error_url)
-        
+
         # проверка регистрации почты
         if User.objects.filter(email__iexact=req.email).exists():
             req.delete()
-            # return Response({"detail":"Электронная почта уже зарегистрирована."}, status=status.HTTP_400_BAD_REQUEST)
             error_url = f"{FRONTEND_URL}/auth?error=Электронная почта уже зарегистрирована"
             return redirect(error_url)
-        
+
         username = req.username or req.email.split('@')[0]
         # создание пользователя
         user = User(username=username, email=req.email, is_active=True)
-        user.password = req.password_hash 
+        user.password = req.password_hash
         user.save()
 
         # пара JWT
@@ -131,8 +127,10 @@ class ConfirmRegistrationView(APIView):
         response = redirect(redirect_url)
 
         # response = Response(data=query_params, status=status.HTTP_201_CREATED)
-        response.set_cookie(key="refresh", value=refresh_token, httponly=True, secure=False, path='/')
+        response.set_cookie(key="refresh", value=refresh_token,
+                            httponly=True, secure=False, path='/')
         return response
+
 
 class LogoutView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
@@ -140,16 +138,18 @@ class LogoutView(APIView):
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh")
         if not refresh_token:
-            return Response({"detail":"необходим refresh token."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "необходим refresh token."}, status=status.HTTP_400_BAD_REQUEST)
         try:
             token = RefreshToken(refresh_token)
             token.blacklist()
-            response = Response({"detail":"разлогинен."}, status=status.HTTP_205_RESET_CONTENT)
+            response = Response({"detail": "разлогинен."},
+                                status=status.HTTP_205_RESET_CONTENT)
             response.delete_cookie("refresh", path="/")
             return response
         except Exception:
-            return Response({"detail":"неверный токен."}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({"detail": "неверный токен."}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -159,55 +159,59 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             raise InvalidToken(e.args[0])
         serializer_data = serializer.validated_data
         data = {
-            "username":serializer_data["username"],
-            "is_staff":serializer_data["is_staff"],
-            "access":serializer_data["access"]
-            }
+            "username": serializer_data["username"],
+            "is_staff": serializer_data["is_staff"],
+            "access": serializer_data["access"]
+        }
         response = Response(data=data, status=status.HTTP_200_OK)
-        response.set_cookie(key="refresh", value=serializer_data["refresh"], httponly=True, secure=False, path='/', domain=None)
+        response.set_cookie(
+            key="refresh", value=serializer_data["refresh"], httponly=True, secure=False, path='/', domain=None)
         # response.set_cookie(key="access", value=serializer.validated_data["access"], httponly=True, secure=False, path='/', domain=None)
         return response
+
 
 class VerifyTokenView(APIView):
     def post(self, request):
         # Пытаемся получить токен из куки
         access_token = request.data
-        
+
         if not access_token:
             return Response(
-                {"error": "Токен не найден"}, 
+                {"error": "Токен не найден"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-        
+
         try:
             # Проверяем валидность токена
             token = AccessToken(access_token)
             return Response(
-                {"detail": "Токен валидный", "user_id": token['user_id']}, 
+                {"detail": "Токен валидный", "user_id": token['user_id']},
                 status=status.HTTP_200_OK
             )
         except TokenError as e:
             return Response(
-                {"error": str(e)}, 
+                {"error": str(e)},
                 status=status.HTTP_401_UNAUTHORIZED
             )
         except jwt.InvalidTokenError:
             return Response(
-                {"error": "Невалидный токен"}, 
+                {"error": "Невалидный токен"},
                 status=status.HTTP_401_UNAUTHORIZED
-            )    
+            )
+
 
 class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data={"refresh":request.COOKIES.get("refresh")})
+        serializer = self.get_serializer(
+            data={"refresh": request.COOKIES.get("refresh")})
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0])
         serializer_data = serializer.validated_data
         response = Response(data=serializer_data, status=status.HTTP_200_OK)
-        # response.set_cookie(key="access", value=serializer.validated_data["access"], httponly=True, secure=False, path='/', domain=None)
         return response
+
 
 class UserAdminView(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, IsStafforAdmin,)
@@ -218,7 +222,7 @@ class UserAdminView(viewsets.ModelViewSet):
         # Показываем пользователей кроме текущего
         user = request.user
         return User.objects.exclude(username=user)
-    
+
     @action(detail=True, methods=['post'])
     def update_permissions(self, request, pk=None):
         """сменить права"""
@@ -233,7 +237,7 @@ class UserAdminView(viewsets.ModelViewSet):
         user.save()
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     @action(detail=True, methods=['delete'])
     def delete_user(self, request, pk=None):
         """Удалить пользователя"""

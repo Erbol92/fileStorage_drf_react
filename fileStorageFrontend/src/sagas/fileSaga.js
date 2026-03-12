@@ -20,8 +20,8 @@ import {
   renameItemSuccess,
   shareItemRequest,
   shareItemSuccess,
-  stopAccessShareRequest,
-  stopAccessShareSuccess
+  commentFileRequest,
+  commentFileSuccess
 } from '../slices/fileSlice';
 import { authActions } from '../slices/authSlice';
 
@@ -138,10 +138,10 @@ function* shareItemSaga(action) {
   }
 }
 
-function* stopShareItemSaga(action) {
+function* commentItemSaga(action) {
   try {
-    const file = yield call(api.shareItem, action.payload);
-      yield put(shareItemSuccess(file))
+    const file = yield call(api.commentItem, action.payload);
+      yield put(commentFileSuccess(file))
   } catch (error) {
     yield put(fetchFilesFailure(error.message));
   }
@@ -182,4 +182,8 @@ export function* watchRenameItem() {
 
 export function* watchShareItem() {
   yield takeLatest(shareItemRequest.type, shareItemSaga);
+}
+
+export function* watchCommentItem() {
+  yield takeLatest(commentFileRequest.type, commentItemSaga);
 }

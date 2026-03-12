@@ -13,7 +13,9 @@ import UploadModal from './UploadModal';
 import CreateFolderModal from './CreateFolderModal';
 import MoveModal from './MoveModal';
 import RenameModal from './RenameModal'
+import CommentModal from './CommentModal'
 import { FaFolderPlus, FaUpload, FaSearch, FaSync } from 'react-icons/fa';
+import { Loader } from '../../components/Loader/Loader'
 
 export const FileManager = () => {
   const dispatch = useDispatch();
@@ -31,7 +33,6 @@ export const FileManager = () => {
   const [searchTimeout, setSearchTimeout] = useState(null);
 
   useEffect(() => {
-    console.log('asd')
     dispatch(fetchRootRequest());
   }, [dispatch]);
 
@@ -164,7 +165,7 @@ export const FileManager = () => {
       />
 
       {loading && !files.length ? (
-        <div className="loading">Загрузка...</div>
+        <Loader />
       ) : (
         <FileList 
           files={files}
@@ -184,6 +185,7 @@ export const FileManager = () => {
       <CreateFolderModal />
       <MoveModal />
       <RenameModal />
+      <CommentModal />
     </div>
   );
 };

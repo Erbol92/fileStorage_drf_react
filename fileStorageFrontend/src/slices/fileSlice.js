@@ -16,6 +16,10 @@ const initialState = {
     isOpen: false,
     item: null
   },
+  commentModal: {
+    isOpen: false,
+    item: null
+  },
   createFolderModal: {
     isOpen: false,
     parentId: null
@@ -71,8 +75,16 @@ export const fileSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-
+    commentFileRequest: (state, action) => {
+      state.loading = true;
+      state.error = null;
+    },
     // Успешные ответы
+    commentFileSuccess: (state, action) => {
+      const item = action.payload
+      state.loading = false;
+      state.files = state.files.map(file=>file.id==item.id ? {...file,comment:item.comment} : file);
+    },
     fetchFilesSuccess: (state, action) => {
       state.loading = false;
       state.files = action.payload.files;
@@ -121,7 +133,6 @@ export const fileSlice = createSlice({
     },
     updateAfterDownloadFileSuccess: (state, action) => {
       const downloadedFile = action.payload
-      console.log(downloadedFile.id, downloadedFile.downloaded_at)
       state.files = state.files.map(file => file.id === downloadedFile.id ? {...file, downloaded_at: downloadedFile.downloaded_at} : file);
     },
 
@@ -172,6 +183,14 @@ export const fileSlice = createSlice({
       state.renameModal.isOpen = false;
       state.renameModal.item = null;
     },
+    openCommentModal: (state, action) => {
+      state.commentModal.isOpen = true;
+      state.commentModal.item = action.payload;
+    },
+    closeCommentModal: (state) => {
+      state.commentModal.isOpen = false;
+      state.commentModal.item = null;
+    },
     clearError: (state) => {
       state.error = null;
     }
@@ -211,5 +230,9 @@ export const {
   shareItemSuccess,
   stopAccessShareRequest,
   stopAccessShareSuccess,
-  updateAfterDownloadFileSuccess
+  updateAfterDownloadFileSuccess,
+  commentFileSuccess,
+  commentFileRequest,
+  openCommentModal,
+  closeCommentModal
 } = fileSlice.actions;

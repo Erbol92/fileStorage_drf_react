@@ -5,7 +5,7 @@ import {
   fetchRootRequest,
   closeRenameModal
 } from '../../slices/fileSlice';
-import { FaTimes, FaFolder, FaChevronRight } from 'react-icons/fa';
+import { FaTimes } from 'react-icons/fa';
 
 const RenameModal = () => {
   const dispatch = useDispatch();

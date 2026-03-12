@@ -6,6 +6,7 @@ import os
 from storage_backend.settings import MEDIA_ROOT
 # from storage.models import File
 
+
 @receiver(post_save, sender=User)
 def create_user_directory(sender, instance, created, **kwargs):
     if not created:

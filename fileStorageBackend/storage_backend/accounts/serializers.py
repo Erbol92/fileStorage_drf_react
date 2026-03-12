@@ -5,22 +5,27 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class RegistrationSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    username = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    username = serializers.CharField(
+        max_length=150, required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, min_length=8)
     password2 = serializers.CharField(write_only=True, min_length=8)
-    
+
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Пароли не совпадают."})
+            raise serializers.ValidationError(
+                {"password": "Пароли не совпадают."})
         try:
             validate_password(attrs.get("password"))
         except Exception as e:
             if isinstance(e, serializers.ValidationError):
-                raise serializers.ValidationError({"password": list(e.messages)})
+                raise serializers.ValidationError(
+                    {"password": list(e.messages)})
             raise
         return attrs
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -29,8 +34,9 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['is_staff'] = self.user.is_staff
         return data
 
+
 class UserSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = User
         fields = [

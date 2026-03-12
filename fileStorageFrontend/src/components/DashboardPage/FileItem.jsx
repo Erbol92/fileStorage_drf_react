@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   deleteItemRequest,
+  openCommentModal,
   openMoveModal,
   shareItemRequest,
   updateAfterDownloadFileSuccess
@@ -20,7 +21,7 @@ import {
   FaCheckSquare,
   FaSquare
 } from 'react-icons/fa';
-import { FcDownload, FcLink, FcLock  } from "react-icons/fc";
+import { FcDownload, FcLink, FcLock, FcComments } from "react-icons/fc";
 import {CONFIG} from '../../config'
 import { downloadUserFile } from '../../api/fileApi'
 
@@ -182,9 +183,14 @@ const FileItem = ({
       console.error(err)
     }
   };
+
   const stopAccessShare = async(id) => {
     dispatch(shareItemRequest({id, "stop":true}))
     setShowMenu(false);
+  }
+
+  const commentModal = async (file) => {
+    dispatch(openCommentModal(file))
   }
 
   return (
@@ -258,6 +264,9 @@ const FileItem = ({
                 </div>
               </div>
             }
+            <div className="menu-item" onClick={()=>commentModal(file)}>
+                  <FcComments /> комментировать
+                </div>
             </>
           }
           <div className="menu-item danger" onClick={handleDelete}>

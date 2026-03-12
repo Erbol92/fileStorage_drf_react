@@ -69,8 +69,14 @@ export const renameItem = async ({itemId, name}) => {
 
 export const shareItem = async ({id, stop=false}) => {
   const response = await api.post(`/files/${id}/share/`,
-    null, 
-    {params: { "stop":stop} } 
+    { "stop":stop}
+);
+  return response.data;
+};
+
+export const commentItem = async ({itemId, comment}) => {
+  const response = await api.post(`/files/${itemId}/comment/`,
+    { "comment":comment}
 );
   return response.data;
 };
