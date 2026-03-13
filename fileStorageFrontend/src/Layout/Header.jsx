@@ -12,6 +12,8 @@ export const Header = () => {
         dispatch(authActions.logoutRequest(access));
         navigate(ROUTES.HOME)
     };
+    console.log(isStaff)
+    console.log(!!isStaff)
     return (
         isAuth && 
         <header className="bg-light rounded-4 p-3">

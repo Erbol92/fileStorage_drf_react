@@ -15,13 +15,13 @@ export const AuthInfo = () => {
     const params = new URLSearchParams(location.search);
     const access = params.get('access');
     const username = params.get('username');
-    const is_staff = params.get('is_staff');
+    const is_staff = params.get('is_staff')?.trim().toLowerCase();
     const errorMess = params.get('error');
     if (access) {
         const data = {
             access,
             username,
-            is_staff,
+            "isStaff": is_staff,
         }
       dispatch(authActions.loginSuccess(data))
       setTimeout(() => {

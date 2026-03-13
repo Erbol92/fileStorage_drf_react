@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_api_logger',
     'django_celery_results',
+    'django_celery_beat'
 ]
 
 INSTALLED_APPS += ['accounts', 'storage',]
@@ -90,7 +91,7 @@ CORS_EXPOSE_HEADERS = [
 CORS_ALLOW_CREDENTIALS = True
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=15),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "TOKEN_OBTAIN_SERIALIZER": "accounts.serializers.MyTokenObtainPairSerializer",
     # ...
