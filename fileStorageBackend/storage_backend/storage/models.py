@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from django.db import models
 
 # Create your models here.
@@ -6,7 +8,7 @@ from django.db import models
 from django.contrib.auth.models import User
 import os
 import mimetypes
-
+from django.db import IntegrityError
 
 def user_directory_path(instance, filename):
     # Собираем части пути: username/path/to/folder/filename
@@ -64,7 +66,10 @@ class File(models.Model):
 
     def save(self, *args, **kwargs):
         self.clean()
-
+        clone = File.objects.filter(name__icontains=self.name, parent=self.parent, owner=self.owner)
+        if clone:
+            ts = int(timezone.now().timestamp() * 1000)
+            self.name = f'{self.name}_{ts}'
         # Обновляем размер файла
         if self.file and not self.is_directory:
             self.size = self.file.size
