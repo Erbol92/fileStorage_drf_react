@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux"
 import { adminActions } from "../slices/adminSlice";
-import { UserView } from "../components/AdminPage/userView";
+import { UserView } from "../components/AdminPage/UserView";
 import { AsideUserInfo } from "../components/AdminPage/AsideUserInfo";
 
 export const AdminPage = () => {

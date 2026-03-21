@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from datetime import timedelta
 import os
 from pathlib import Path
+import re
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -56,10 +57,9 @@ REST_FRAMEWORK = {
     ),
 }
 
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^http://127\.0\.0\.1(:\d+)?$",
-    r"^http://localhost(:\d+)?$",
-]
+cors_origins = os.getenv("CORS_ORIGINS", "")
+if cors_origins:
+    CORS_ALLOWED_ORIGINS = cors_origins.split(",")
 
 CORS_ALLOW_METHODS = (
     "DELETE",

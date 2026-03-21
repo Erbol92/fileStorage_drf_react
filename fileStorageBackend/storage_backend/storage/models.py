@@ -66,10 +66,12 @@ class File(models.Model):
 
     def save(self, *args, **kwargs):
         self.clean()
-        clone = File.objects.filter(name__icontains=self.name, parent=self.parent, owner=self.owner)
-        if clone:
-            ts = int(timezone.now().timestamp() * 1000)
-            self.name = f'{self.name}_{ts}'
+        if not self.is_directory:
+            base = self.name
+            clone = File.objects.filter(name__icontains=base, parent=self.parent, owner=self.owner)
+            if clone.exists():
+                ts = int(timezone.now().timestamp() * 1000)
+                self.name = f'{base}_{ts}'
         # Обновляем размер файла
         if self.file and not self.is_directory:
             self.size = self.file.size
