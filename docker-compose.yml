@@ -6,7 +6,7 @@ services:
     container_name: storage_db
     restart: unless-stopped
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data/
+      - /opt/postgres_data:/var/lib/postgresql/data/
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
@@ -48,7 +48,7 @@ services:
              python manage.py collectstatic --noinput &&
              gunicorn storage_backend.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120"
     volumes:
-      - ./media:/app/media          # <-- МОНТИРУЕМ ЛОКАЛЬНУЮ ПАПКУ С КОМПА
+      - /opt/media:/app/media          # <-- МОНТИРУЕМ ЛОКАЛЬНУЮ ПАПКУ С КОМПА
       - static_volume:/app/static
     expose:
       - "8000"
@@ -99,7 +99,7 @@ services:
       - ./nginx/front/nginx.conf:/etc/nginx/conf.d/default.conf
       - /opt/reb-study.ru.crt:/etc/nginx/ssl/reb-study.ru.crt
       - /opt/reb-study.ru.key:/etc/nginx/ssl/reb-study.ru.key
-      - static_volume:/static
+      - /opt/static_volume:/static
     ports:
       - "443:443"
     depends_on:
