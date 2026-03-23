@@ -1,0 +1,113 @@
+name: Build Docker Image and Deploy
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+env:
+  IMAGE_NAME_BACKEND: erbol92/backend
+  IMAGE_NAME_FRONTEND: erbol92/frontend
+  NAMESPACE: diplom
+  DEPLOYMENT_NAME: diplom
+
+jobs:
+  build_app_backend:
+    runs-on: self-hosted
+    steps:
+      # Шаг 1: Клонируем проект
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Determine Docker tag
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "TAG=latest" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
+
+      # Шаг 2: Авторизуемся в Docker Registry
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Шаг 3: Собираем Docker образ
+      - name: Build Docker Image
+        run: docker build -t  ${{ env.IMAGE_NAME_BACKEND }}:${{ env.TAG }} ./fileStorageBackend/storage_backend
+     
+      # Шаг 5: Пушим Docker образ в Docker Hub
+      - name: Push Docker Image
+        run: docker push  ${{ env.IMAGE_NAME_BACKEND }}:${{ env.TAG }}
+
+  build_app_frontend:
+    runs-on: self-hosted
+    steps:
+      # Шаг 1: Клонируем проект
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Determine Docker tag
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "TAG=latest" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
+
+      # Шаг 2: Авторизуемся в Docker Registry
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Шаг 3: Собираем Docker образ
+      - name: Build Docker Image
+        run: docker build -t  ${{ env.IMAGE_NAME_FRONTEND }}:${{ env.TAG }} ./fileStorageFrontend
+     
+      # Шаг 5: Пушим Docker образ в Docker Hub
+      - name: Push Docker Image
+        run: docker push  ${{ env.IMAGE_NAME_FRONTEND }}:${{ env.TAG }}
+        
+  deploy_app:
+    needs: build_app_backend,build_app_frontend
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: List files in the working directory
+        run: |
+          ls -la
+
+      - name: Extract version from tag or commit message
+        run: |
+          echo "GITHUB_REF: ${GITHUB_REF}"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=$(git log -1 --pretty=format:%B | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' || echo "")
+          fi
+          if [[ -z "$VERSION" ]]; then
+            echo "No version found in the commit message or tag"
+            exit 1
+          fi
+          VERSION=${VERSION//[[:space:]]/}  # Remove any spaces
+          echo "Using version: $VERSION"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Replace image tag in docker-compose.yml
+        run: |
+          if [ ! -f ./docker-compose.yml ]; then
+            echo "docker-compose.yml not found in the current directory"
+            exit 1
+          fi
+          sed -i "s|image: erbol92/backend:.*|image: ${{ env.IMAGE_NAME }}:${{ env.VERSION }}|" ./docker-compose.yml 
+          sed -i "s|image: erbol92/frontend:.*|image: ${{ env.IMAGE_NAME }}:${{ env.VERSION }}|" ./docker-compose.yml 
+
+      - name: Apply docker compose
+        run: |
+          docker compose up -d --force-recreate

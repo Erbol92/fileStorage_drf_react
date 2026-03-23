@@ -61,6 +61,10 @@ cors_origins = os.getenv("CORS_ORIGINS", "")
 if cors_origins:
     CORS_ALLOWED_ORIGINS = cors_origins.split(",")
 
+csrf_trusted_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+if csrf_trusted_origins:
+    CSRF_TRUSTED_ORIGINS = csrf_trusted_origins.split(",")
+    
 CORS_ALLOW_METHODS = (
     "DELETE",
     "GET",
