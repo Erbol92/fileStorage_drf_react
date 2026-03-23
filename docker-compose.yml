@@ -97,8 +97,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./nginx/front/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./reb-study.ru.crt:/etc/nginx/ssl/reb-study.ru.crt
-      - ./reb-study.ru.key:/etc/nginx/ssl/reb-study.ru.key
+      - /opt/reb-study.ru.crt:/etc/nginx/ssl/reb-study.ru.crt
+      - /opt/reb-study.ru.key:/etc/nginx/ssl/reb-study.ru.key
       - static_volume:/static
     ports:
       - "443:443"
