@@ -90,7 +90,7 @@ services:
       - app_network
 
   frontend:
-    image: erbol92/backend
+    image: erbol92/frontend
     env_file:
       - ./fileStorageBackend/storage_backend/.env
     container_name: storage_frontend
