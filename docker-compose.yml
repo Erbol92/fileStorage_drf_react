@@ -9,9 +9,9 @@ services:
       - ./postgres_data:/var/lib/postgresql/data/
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
-      - POSTGRES_DB=storage_db
-      - POSTGRES_USER=storage_user
-      - POSTGRES_PASSWORD=storage_password
+      - POSTGRES_DB=${{ secrets.BACKEND_DB_NAME }}
+      - POSTGRES_USER=${{ secrets.BACKEND_DB_USER }}
+      - POSTGRES_PASSWORD=${{ secrets.BACKEND_DB_PASSWORD }}
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
     ports:
       - "127.0.0.1:5432:5432"
@@ -20,8 +20,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    env_file:
-      - ./fileStorageBackend/storage_backend/.env
+    
     networks:
       - app_network
 
@@ -41,8 +40,28 @@ services:
 
   backend:
     image: erbol92/backend
-    env_file:
-      - ./fileStorageBackend/storage_backend/.env
+    environment:
+      - DEBUG=${{ secrets.BACKEND_DEBUG }}
+      - SECRET_KEY=${{ secrets.BACKEND_SECRET_KEY }}
+      - ALLOWED_HOSTS=${{ secrets.BACKEND_ALLOWED_HOSTS }}
+      - DB_NAME=${{ secrets.BACKEND_DB_NAME }}
+      - DB_USER=${{ secrets.BACKEND_DB_USER }}
+      - DB_PASSWORD=${{ secrets.BACKEND_DB_PASSWORD }}
+      - DB_HOST=${{ secrets.BACKEND_DB_HOST }}
+      - DB_PORT=${{ secrets.BACKEND_DB_PORT }}
+      - REDIS_HOST=${{ secrets.BACKEND_REDIS_HOST }}
+      - REDIS_PORT=${{ secrets.BACKEND_REDIS_PORT }}
+      - CORS_ALLOWED_ORIGINS=${{ secrets.BACKEND_CORS_ALLOWED_ORIGINS }}
+      - CSRF_TRUSTED_ORIGINS=${{ secrets.BACKEND_CSRF_TRUSTED_ORIGINS }}
+      - EMAIL_HOST=${{ secrets.BACKEND_EMAIL_HOST_USER }}
+      - EMAIL_PORT=${{ secrets.BACKEND_EMAIL_PORT }}
+      - EMAIL_HOST_USER=${{ secrets.BACKEND_DB_NAME }}
+      - EMAIL_HOST_PASSWORD=${{ secrets.BACKEND_EMAIL_HOST_PASSWORD }}
+      - EMAIL_USE_TLS=${{ secrets.BACKEND_EMAIL_USE_TLS }}
+      - DEFAULT_FROM_EMAIL=${{ secrets.BACKEND_DEFAULT_FROM_EMAIL }}
+      - FRONTEND_URL=${{ secrets.BACKEND_FRONTEND_URL }}
+      - CELERY_BROKER_URL=${{ secrets.BACKEND_CELERY_BROKER_URL }}
+      - CELERY_RESULT_BACKEND=${{ secrets.BACKEND_CELERY_RESULT_BACKEND }}
     container_name: storage_backend
     restart: unless-stopped
     command: >
@@ -72,8 +91,9 @@ services:
       - backend
       - redis
       - db
-    env_file:
-      - ./fileStorageBackend/storage_backend/.env
+    environment:
+      - CELERY_BROKER_URL=${{ secrets.BACKEND_CELERY_BROKER_URL }}
+      - CELERY_RESULT_BACKEND=${{ secrets.BACKEND_CELERY_RESULT_BACKEND }}
     networks:
       - app_network
 
@@ -87,8 +107,9 @@ services:
       - redis
       - db
       - celery_worker
-    env_file:
-      - ./fileStorageBackend/storage_backend/.env
+    environment:
+      - CELERY_BROKER_URL=${{ secrets.BACKEND_CELERY_BROKER_URL }}
+      - CELERY_RESULT_BACKEND=${{ secrets.BACKEND_CELERY_RESULT_BACKEND }}
     networks:
       - app_network
 
@@ -107,6 +128,9 @@ services:
       - "443:443"
     depends_on:
       - backend
+    environment:
+      - VITE_API_URL=${{ secrets.FRONT_VITE_API_URL }}
+      - VITE_BACKEND_URL=${{ secrets.FRONT_VITE_BACKEND_URL }}
     networks:
       - app_network
 
