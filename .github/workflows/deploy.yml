@@ -73,7 +73,7 @@ jobs:
         run: docker push  ${{ env.IMAGE_NAME_FRONTEND }}:${{ env.TAG }}
         
   deploy_app:
-    needs: build_app_backend,build_app_frontend
+    needs: [ build_app_backend, build_app_frontend ]
     runs-on: self-hosted
     steps:
       - name: Checkout code
