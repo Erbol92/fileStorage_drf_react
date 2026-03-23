@@ -49,7 +49,7 @@ services:
              gunicorn storage_backend.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120"
     volumes:
       - /opt/media:/app/media          # <-- МОНТИРУЕМ ЛОКАЛЬНУЮ ПАПКУ С КОМПА
-      - static_volume:/app/static
+      - /opt/static_volume:/app/static
     expose:
       - "8000"
     depends_on:
@@ -107,8 +107,8 @@ services:
     networks:
       - app_network
 
-volumes:
-  static_volume:
+# volumes:
+#   static_volume:
 
 networks:
   app_network:
