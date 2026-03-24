@@ -3,8 +3,7 @@
 admin/ url панели администратора (Django Admin)
 
 ## API (основное)
-
-
+```
 GET    api/users                           # список пользователей
 GET    api/users/{id}                      # получить конкретного пользователя
 DELETE api/users/{id}                      # удалить пользователя
@@ -30,3 +29,4 @@ POST   api/files/{id}/comment              # добавить комментар
 GET    api/files/search                    # поиск файлов по имени
 GET    api/download                        # скачать файл (для владельца)
 GET    api/download/{uuid}                 # скачать файл (гостевой доступ)
+```
