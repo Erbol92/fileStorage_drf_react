@@ -36,10 +36,13 @@ POSTGRES_PASSWORD=example_password
 ```
 3. В nginx/front/nginx.conf указываем свой server_name и пути до ssl сертификатов
 4. Создание БД в скрипте init.sql, в случае изменения меняем .env
-5. docker compose up -d запустить контейнеры
-6. docker exec -it storage_backend bash
-```
-python manage.py createsuperuser
-```
-создаем админа
-6. docker compose down потушить контейнеры.
+5. Запустить контейнеры
+    ```
+    docker compose up -d
+    ```
+6. создаем админа
+   ```
+   docker exec -it storage_backend bash
+   python manage.py createsuperuser
+   ```
+7. docker compose down потушить контейнеры.
