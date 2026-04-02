@@ -3,7 +3,9 @@
 venv/
 _tmp/
 __pycache__/
+*.pyc
 .env
 .DS_Store
 Thumbs.db
 media/
+db.sqlite3
