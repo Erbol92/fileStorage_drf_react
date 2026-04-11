@@ -101,7 +101,8 @@ services:
       - /opt/reb-study.ru.key:/etc/nginx/ssl/reb-study.ru.key
       - /opt/static_volume:/static
     ports:
-      - "443:443"
+      # - "443:443"
+      - "80:80"
     depends_on:
       - backend
     networks:
