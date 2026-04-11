@@ -83,7 +83,7 @@ jobs:
       - name: List files in the working directory
         run: |
           ls -la
-      - name: Create .env file
+      - name: Create .env backend file
         run: |
           cat > ./fileStorageBackend/storage_backend/.env << EOF
           DEBUG=${{ secrets.BACKEND_DEBUG }}
@@ -112,6 +112,12 @@ jobs:
           POSTGRES_DB=${{ secrets.BACKEND_DB_NAME }}
           POSTGRES_USER=${{ secrets.BACKEND_DB_USER }}
           POSTGRES_PASSWORD=${{ secrets.BACKEND_DB_PASSWORD }}
+          EOF
+      - name: Create .env frontend file
+        run: |
+          cat > ./fileStorageFrontend/.env << EOF
+          VITE_BACKEND_URL=${{ secrets.FRONT_VITE_BACKEND_URL }}
+          VITE_API_URL=${{ secrets.FRONT_VITE_API_URL }}
           EOF
       - name: Extract version from tag or commit message
         run: |
